@@ -28,11 +28,6 @@ const Index = () => {
     setActiveTab("results");
   };
 
-  const totalSessions = countResults.length;
-  const averageCount = countResults.length > 0 
-    ? Math.round(countResults.reduce((sum, r) => sum + r.headCount, 0) / countResults.length)
-    : 0;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -51,32 +46,14 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Head Count Display */}
+        <div className="flex justify-center mb-8">
           <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Sessions</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 text-center">Current Head Count</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{totalSessions}</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Average Count</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-indigo-600">{averageCount}</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Last Count</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-6xl font-bold text-blue-600 text-center">
                 {currentResult?.headCount || 0}
               </div>
             </CardContent>
