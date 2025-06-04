@@ -38,11 +38,11 @@ const Index = () => {
               <Users className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Hall Vision Count
+              Attendance
             </h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            AI-powered head counting for lecture halls using advanced computer vision
+            AI Powered Smart Attendance system
           </p>
         </div>
 
