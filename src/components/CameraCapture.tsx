@@ -11,12 +11,13 @@ import { toast } from "sonner";
 
 interface CameraCaptureProps {
   onCountComplete: (result: CountResult) => void;
+  sessionName: string;
+  onSessionNameChange: (name: string) => void;
 }
 
-const CameraCapture = ({ onCountComplete }: CameraCaptureProps) => {
+const CameraCapture = ({ onCountComplete, sessionName, onSessionNameChange }: CameraCaptureProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [sessionName, setSessionName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +57,6 @@ const CameraCapture = ({ onCountComplete }: CameraCaptureProps) => {
     
     // Reset form
     setSelectedImage(null);
-    setSessionName("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -84,7 +84,7 @@ const CameraCapture = ({ onCountComplete }: CameraCaptureProps) => {
             id="session-name"
             placeholder="e.g., Computer Science 101 - Morning Lecture"
             value={sessionName}
-            onChange={(e) => setSessionName(e.target.value)}
+            onChange={(e) => onSessionNameChange(e.target.value)}
           />
         </div>
 
