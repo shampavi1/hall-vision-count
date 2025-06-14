@@ -1,9 +1,11 @@
 
 import { useState } from "react";
-import { Camera, History, BarChart3, Users } from "lucide-react";
+import { Camera, History, BarChart3, Users, FileSignature } from "lucide-react";
 import CameraCapture from "../components/CameraCapture";
-import Results from "../components/Results";
+import SignatureScanner from "../components/SignatureScanner";
+import AttendanceComparison from "../components/AttendanceComparison";
 import SessionHistory from "../components/SessionHistory";
+import LoginForm from "../components/LoginForm";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -15,18 +17,74 @@ export interface CountResult {
   confidence: number;
   timestamp: Date;
   sessionName?: string;
+  signatureCount?: number;
+  isMatched?: boolean;
 }
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("capture");
   const [countResults, setCountResults] = useState<CountResult[]>([]);
   const [currentResult, setCurrentResult] = useState<CountResult | null>(null);
+  const [signatureResult, setSignatureResult] = useState<{ count: number; imageUrl: string } | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   const handleNewCount = (result: CountResult) => {
     setCountResults(prev => [result, ...prev]);
     setCurrentResult(result);
-    setActiveTab("results");
   };
+
+  const handleSignatureScanned = (result: { count: number; imageUrl: string }) => {
+    setSignatureResult(result);
+  };
+
+  const handleProcessComparison = () => {
+    if (currentResult && signatureResult) {
+      const updatedResult = {
+        ...currentResult,
+        signatureCount: signatureResult.count,
+        isMatched: Math.abs(currentResult.headCount - signatureResult.count) <= 1
+      };
+      setCurrentResult(updatedResult);
+      setActiveTab("comparison");
+    }
+  };
+
+  const handleStoreRecord = () => {
+    if (!isLoggedIn) {
+      setShowLogin(true);
+    } else {
+      // Store the record logic here
+      if (currentResult) {
+        setCountResults(prev => {
+          const updated = prev.map(result => 
+            result.id === currentResult.id ? currentResult : result
+          );
+          return updated;
+        });
+      }
+    }
+  };
+
+  const handleLogin = (success: boolean) => {
+    if (success) {
+      setIsLoggedIn(true);
+      setShowLogin(false);
+      // Auto-store record after successful login
+      if (currentResult) {
+        setCountResults(prev => {
+          const updated = prev.map(result => 
+            result.id === currentResult.id ? currentResult : result
+          );
+          return updated;
+        });
+      }
+    }
+  };
+
+  if (showLogin) {
+    return <LoginForm onLogin={handleLogin} onCancel={() => setShowLogin(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -63,16 +121,24 @@ const Index = () => {
         {/* Main Content */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-100/50">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-100/50">
               <TabsTrigger value="capture" className="flex items-center gap-2">
                 <Camera className="h-4 w-4" />
                 <span className="hidden sm:inline">Capture</span>
               </TabsTrigger>
-              <TabsTrigger value="results" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Results</span>
+              <TabsTrigger value="signature" className="flex items-center gap-2">
+                <FileSignature className="h-4 w-4" />
+                <span className="hidden sm:inline">Signature</span>
               </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center gap-2">
+              <TabsTrigger value="comparison" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Compare</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="history" 
+                className="flex items-center gap-2"
+                disabled={!isLoggedIn}
+              >
                 <History className="h-4 w-4" />
                 <span className="hidden sm:inline">History</span>
               </TabsTrigger>
@@ -82,18 +148,46 @@ const Index = () => {
               <CameraCapture onCountComplete={handleNewCount} />
             </TabsContent>
 
-            <TabsContent value="results" className="mt-6">
-              <Results result={currentResult} />
+            <TabsContent value="signature" className="mt-6">
+              <SignatureScanner onSignatureScanned={handleSignatureScanned} />
+              {currentResult && signatureResult && (
+                <div className="mt-6 text-center">
+                  <Button 
+                    onClick={handleProcessComparison}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    size="lg"
+                  >
+                    Process Comparison
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="comparison" className="mt-6">
+              <AttendanceComparison 
+                result={currentResult} 
+                onStoreRecord={handleStoreRecord}
+                isLoggedIn={isLoggedIn}
+              />
             </TabsContent>
 
             <TabsContent value="history" className="mt-6">
-              <SessionHistory 
-                results={countResults} 
-                onSelectResult={(result) => {
-                  setCurrentResult(result);
-                  setActiveTab("results");
-                }}
-              />
+              {isLoggedIn ? (
+                <SessionHistory 
+                  results={countResults} 
+                  onSelectResult={(result) => {
+                    setCurrentResult(result);
+                    setActiveTab("comparison");
+                  }}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <History className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">Login Required</h3>
+                  <p className="text-gray-500 mb-4">Please login to access attendance history</p>
+                  <Button onClick={() => setShowLogin(true)}>Login</Button>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </Card>
