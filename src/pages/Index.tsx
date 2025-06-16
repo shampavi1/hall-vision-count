@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Camera, History, BarChart3, Users, FileSignature } from "lucide-react";
 import CameraCapture from "../components/CameraCapture";
@@ -191,11 +190,6 @@ const Index = () => {
             </TabsContent>
           </Tabs>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
-          <p>Powered by YOLO Computer Vision • Built with React & Python</p>
-        </div>
       </div>
     </div>
   );
