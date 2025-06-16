@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Camera, History, BarChart3, Users, FileSignature } from "lucide-react";
+import { Camera, History, BarChart3, Users, FileSignature, RotateCcw } from "lucide-react";
 import CameraCapture from "../components/CameraCapture";
 import SignatureScanner from "../components/SignatureScanner";
 import AttendanceComparison from "../components/AttendanceComparison";
@@ -27,10 +28,12 @@ const Index = () => {
   const [signatureResult, setSignatureResult] = useState<{ count: number; imageUrl: string } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [sessionName, setSessionName] = useState("");
 
   const handleNewCount = (result: CountResult) => {
-    setCountResults(prev => [result, ...prev]);
-    setCurrentResult(result);
+    const resultWithSession = { ...result, sessionName: sessionName || undefined };
+    setCountResults(prev => [resultWithSession, ...prev]);
+    setCurrentResult(resultWithSession);
   };
 
   const handleSignatureScanned = (result: { count: number; imageUrl: string }) => {
@@ -47,6 +50,13 @@ const Index = () => {
       setCurrentResult(updatedResult);
       setActiveTab("comparison");
     }
+  };
+
+  const handleReset = () => {
+    setCurrentResult(null);
+    setSignatureResult(null);
+    setSessionName("");
+    setActiveTab("capture");
   };
 
   const handleStoreRecord = () => {
@@ -101,17 +111,40 @@ const Index = () => {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             AI Powered Smart Attendance system
           </p>
+          
+          {/* Reset Button */}
+          <div className="mt-4">
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              className="bg-white/70 backdrop-blur-sm"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+          </div>
         </div>
 
-        {/* Head Count Display */}
-        <div className="flex justify-center mb-8">
+        {/* Head Count and Signature Count Display */}
+        <div className="flex justify-center gap-4 mb-8">
           <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 text-center">Current Head Count</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600 text-center">Head Count</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-6xl font-bold text-blue-600 text-center">
+              <div className="text-4xl font-bold text-blue-600 text-center">
                 {currentResult?.headCount || 0}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 text-center">Signature Count</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-green-600 text-center">
+                {signatureResult?.count || 0}
               </div>
             </CardContent>
           </Card>
@@ -144,11 +177,19 @@ const Index = () => {
             </TabsList>
 
             <TabsContent value="capture" className="mt-6">
-              <CameraCapture onCountComplete={handleNewCount} />
+              <CameraCapture 
+                onCountComplete={handleNewCount}
+                sessionName={sessionName}
+                onSessionNameChange={setSessionName}
+              />
             </TabsContent>
 
             <TabsContent value="signature" className="mt-6">
-              <SignatureScanner onSignatureScanned={handleSignatureScanned} />
+              <SignatureScanner 
+                onSignatureScanned={handleSignatureScanned}
+                sessionName={sessionName}
+                onSessionNameChange={setSessionName}
+              />
               {currentResult && signatureResult && (
                 <div className="mt-6 text-center">
                   <Button 
@@ -167,6 +208,8 @@ const Index = () => {
                 result={currentResult} 
                 onStoreRecord={handleStoreRecord}
                 isLoggedIn={isLoggedIn}
+                sessionName={sessionName}
+                onSessionNameChange={setSessionName}
               />
             </TabsContent>
 
@@ -190,6 +233,11 @@ const Index = () => {
             </TabsContent>
           </Tabs>
         </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-gray-500">
+          <p>Powered by YOLO Computer Vision • Built with React & Python</p>
+        </div>
       </div>
     </div>
   );

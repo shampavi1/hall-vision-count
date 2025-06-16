@@ -3,14 +3,18 @@ import { useState, useRef } from "react";
 import { FileSignature, Upload, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { toast } from "sonner";
 
 interface SignatureScannerProps {
   onSignatureScanned: (result: { count: number; imageUrl: string }) => void;
+  sessionName: string;
+  onSessionNameChange: (name: string) => void;
 }
 
-const SignatureScanner = ({ onSignatureScanned }: SignatureScannerProps) => {
+const SignatureScanner = ({ onSignatureScanned, sessionName, onSessionNameChange }: SignatureScannerProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +68,17 @@ const SignatureScanner = ({ onSignatureScanned }: SignatureScannerProps) => {
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Session Name Input */}
+        <div className="space-y-2">
+          <Label htmlFor="session-name-signature">Session Name (Optional)</Label>
+          <Input
+            id="session-name-signature"
+            placeholder="e.g., Computer Science 101 - Morning Lecture"
+            value={sessionName}
+            onChange={(e) => onSessionNameChange(e.target.value)}
+          />
+        </div>
+
         {/* Image Upload Area */}
         <div className="space-y-4">
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50/50 hover:bg-gray-50 transition-colors">
