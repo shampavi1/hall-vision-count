@@ -3,19 +3,15 @@ import { CheckCircle, XCircle, Users, FileSignature, Shield } from "lucide-react
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
 import { CountResult } from "../pages/Index";
 
 interface AttendanceComparisonProps {
   result: CountResult | null;
   onStoreRecord: () => void;
   isLoggedIn: boolean;
-  sessionName: string;
-  onSessionNameChange: (name: string) => void;
 }
 
-const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, onSessionNameChange }: AttendanceComparisonProps) => {
+const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn }: AttendanceComparisonProps) => {
   if (!result || result.signatureCount === undefined) {
     return (
       <div className="text-center py-12">
@@ -28,20 +24,6 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
 
   const isMatched = result.isMatched;
   const difference = Math.abs(result.headCount - result.signatureCount!);
-  const accuracy = isMatched ? 100 : Math.max(0, 100 - (difference / Math.max(result.headCount, result.signatureCount!) * 100));
-
-  // Color coding based on accuracy
-  const getAccuracyColor = (acc: number) => {
-    if (acc >= 95) return "text-green-600";
-    if (acc >= 80) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getAccuracyBg = (acc: number) => {
-    if (acc >= 95) return "bg-green-50 border-green-200";
-    if (acc >= 80) return "bg-yellow-50 border-yellow-200";
-    return "bg-red-50 border-red-200";
-  };
 
   return (
     <div className="space-y-6">
@@ -57,17 +39,6 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Session Name Input */}
-        <div className="space-y-2">
-          <Label htmlFor="session-name-comparison">Session Name (Optional)</Label>
-          <Input
-            id="session-name-comparison"
-            placeholder="e.g., Computer Science 101 - Morning Lecture"
-            value={sessionName}
-            onChange={(e) => onSessionNameChange(e.target.value)}
-          />
-        </div>
-
         {/* Comparison Results */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="bg-blue-50 border-blue-200">
@@ -86,16 +57,6 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
             </CardContent>
           </Card>
         </div>
-
-        {/* Accuracy Display */}
-        <Card className={getAccuracyBg(accuracy)}>
-          <CardContent className="pt-6 text-center">
-            <div className={`text-4xl font-bold ${getAccuracyColor(accuracy)} mb-2`}>
-              {accuracy.toFixed(1)}%
-            </div>
-            <div className="text-sm text-gray-600">Accuracy</div>
-          </CardContent>
-        </Card>
 
         {/* Match Status */}
         <Card className={`${isMatched ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
@@ -116,11 +77,11 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
                 <XCircle className="h-12 w-12 text-red-600 mx-auto" />
                 <h3 className="text-lg font-semibold text-red-800">Attendance Mismatch</h3>
                 <p className="text-red-700">
-                  <span className="font-bold text-xl">{difference}</span> {difference === 1 ? 'person' : 'people'} difference detected. 
+                  {difference} {difference === 1 ? 'person' : 'people'} difference detected. 
                   Please verify attendance manually.
                 </p>
                 <Badge className="bg-red-600 text-white">
-                  ⚠ {difference} Mismatch{difference !== 1 ? 'es' : ''}
+                  ⚠ Mismatch
                 </Badge>
               </div>
             )}
