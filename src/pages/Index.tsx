@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Camera, History, BarChart3, Users, FileSignature, RotateCcw } from "lucide-react";
+import { Camera, History, Users, FileSignature, RotateCcw, BarChart3 } from "lucide-react";
 import CameraCapture from "../components/CameraCapture";
 import SignatureScanner from "../components/SignatureScanner";
 import AttendanceComparison from "../components/AttendanceComparison";
@@ -26,14 +26,17 @@ const Index = () => {
   const [currentResult, setCurrentResult] = useState<CountResult | null>(null);
   const [signatureResult, setSignatureResult] = useState<{ count: number; imageUrl: string } | null>(null);
   const [sessionName, setSessionName] = useState("");
+  const [showComparison, setShowComparison] = useState(false);
 
   const handleNewCount = (result: CountResult) => {
     const resultWithSession = { ...result, sessionName: sessionName || undefined };
     setCurrentResult(resultWithSession);
+    setShowComparison(false);
   };
 
   const handleSignatureScanned = (result: { count: number; imageUrl: string }) => {
     setSignatureResult(result);
+    setShowComparison(false);
   };
 
   const handleProcessComparison = () => {
@@ -44,13 +47,14 @@ const Index = () => {
         isMatched: Math.abs(currentResult.headCount - signatureResult.count) <= 1
       };
       setCurrentResult(updatedResult);
-      setActiveTab("comparison");
+      setShowComparison(true);
     }
   };
 
   const handleStoreRecord = () => {
     if (currentResult) {
       setCountResults(prev => [currentResult, ...prev]);
+      setShowComparison(false);
     }
   };
 
@@ -58,6 +62,7 @@ const Index = () => {
     setCurrentResult(null);
     setSignatureResult(null);
     setSessionName("");
+    setShowComparison(false);
     setActiveTab("capture");
   };
 
@@ -92,7 +97,7 @@ const Index = () => {
         </div>
 
         {/* Head Count and Signature Count Display */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex justify-center gap-4 mb-6">
           <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 text-center">Head Count</CardTitle>
@@ -116,74 +121,73 @@ const Index = () => {
           </Card>
         </div>
 
+        {/* Compare Button */}
+        {currentResult && signatureResult && (
+          <div className="text-center mb-6">
+            <Button 
+              onClick={handleProcessComparison}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+              size="lg"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Compare Attendance
+            </Button>
+          </div>
+        )}
+
         {/* Main Content */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-100/50">
-              <TabsTrigger value="capture" className="flex items-center gap-2">
-                <Camera className="h-4 w-4" />
-                <span className="hidden sm:inline">Hall Photo</span>
-              </TabsTrigger>
-              <TabsTrigger value="signature" className="flex items-center gap-2">
-                <FileSignature className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign Sheet</span>
-              </TabsTrigger>
-              <TabsTrigger value="comparison" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Compare</span>
-              </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center gap-2">
-                <History className="h-4 w-4" />
-                <span className="hidden sm:inline">History</span>
-              </TabsTrigger>
-            </TabsList>
+          {showComparison ? (
+            <AttendanceComparison 
+              result={currentResult} 
+              onStoreRecord={handleStoreRecord}
+              sessionName={sessionName}
+              onSessionNameChange={setSessionName}
+            />
+          ) : (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-100/50">
+                <TabsTrigger value="capture" className="flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  <span className="hidden sm:inline">Hall Photo</span>
+                </TabsTrigger>
+                <TabsTrigger value="signature" className="flex items-center gap-2">
+                  <FileSignature className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign Sheet</span>
+                </TabsTrigger>
+                <TabsTrigger value="history" className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  <span className="hidden sm:inline">History</span>
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="capture" className="mt-6">
-              <CameraCapture 
-                onCountComplete={handleNewCount}
-                sessionName={sessionName}
-                onSessionNameChange={setSessionName}
-              />
-            </TabsContent>
+              <TabsContent value="capture" className="mt-6">
+                <CameraCapture 
+                  onCountComplete={handleNewCount}
+                  sessionName={sessionName}
+                  onSessionNameChange={setSessionName}
+                />
+              </TabsContent>
 
-            <TabsContent value="signature" className="mt-6">
-              <SignatureScanner 
-                onSignatureScanned={handleSignatureScanned}
-                sessionName={sessionName}
-                onSessionNameChange={setSessionName}
-              />
-              {currentResult && signatureResult && (
-                <div className="mt-6 text-center">
-                  <Button 
-                    onClick={handleProcessComparison}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                    size="lg"
-                  >
-                    Process Comparison
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
+              <TabsContent value="signature" className="mt-6">
+                <SignatureScanner 
+                  onSignatureScanned={handleSignatureScanned}
+                  sessionName={sessionName}
+                  onSessionNameChange={setSessionName}
+                />
+              </TabsContent>
 
-            <TabsContent value="comparison" className="mt-6">
-              <AttendanceComparison 
-                result={currentResult} 
-                onStoreRecord={handleStoreRecord}
-                sessionName={sessionName}
-                onSessionNameChange={setSessionName}
-              />
-            </TabsContent>
-
-            <TabsContent value="history" className="mt-6">
-              <SessionHistory 
-                results={countResults} 
-                onSelectResult={(result) => {
-                  setCurrentResult(result);
-                  setActiveTab("comparison");
-                }}
-              />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="history" className="mt-6">
+                <SessionHistory 
+                  results={countResults} 
+                  onSelectResult={(result) => {
+                    setCurrentResult(result);
+                    setShowComparison(true);
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
         </Card>
       </div>
     </div>
