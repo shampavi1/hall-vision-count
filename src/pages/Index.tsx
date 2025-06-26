@@ -5,7 +5,6 @@ import CameraCapture from "../components/CameraCapture";
 import SignatureScanner from "../components/SignatureScanner";
 import AttendanceComparison from "../components/AttendanceComparison";
 import SessionHistory from "../components/SessionHistory";
-import LoginForm from "../components/LoginForm";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -26,13 +25,10 @@ const Index = () => {
   const [countResults, setCountResults] = useState<CountResult[]>([]);
   const [currentResult, setCurrentResult] = useState<CountResult | null>(null);
   const [signatureResult, setSignatureResult] = useState<{ count: number; imageUrl: string } | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [sessionName, setSessionName] = useState("");
 
   const handleNewCount = (result: CountResult) => {
     const resultWithSession = { ...result, sessionName: sessionName || undefined };
-    setCountResults(prev => [resultWithSession, ...prev]);
     setCurrentResult(resultWithSession);
   };
 
@@ -52,48 +48,18 @@ const Index = () => {
     }
   };
 
+  const handleStoreRecord = () => {
+    if (currentResult) {
+      setCountResults(prev => [currentResult, ...prev]);
+    }
+  };
+
   const handleReset = () => {
     setCurrentResult(null);
     setSignatureResult(null);
     setSessionName("");
     setActiveTab("capture");
   };
-
-  const handleStoreRecord = () => {
-    if (!isLoggedIn) {
-      setShowLogin(true);
-    } else {
-      // Store the record logic here
-      if (currentResult) {
-        setCountResults(prev => {
-          const updated = prev.map(result => 
-            result.id === currentResult.id ? currentResult : result
-          );
-          return updated;
-        });
-      }
-    }
-  };
-
-  const handleLogin = (success: boolean) => {
-    if (success) {
-      setIsLoggedIn(true);
-      setShowLogin(false);
-      // Auto-store record after successful login
-      if (currentResult) {
-        setCountResults(prev => {
-          const updated = prev.map(result => 
-            result.id === currentResult.id ? currentResult : result
-          );
-          return updated;
-        });
-      }
-    }
-  };
-
-  if (showLogin) {
-    return <LoginForm onLogin={handleLogin} onCancel={() => setShowLogin(false)} />;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -105,11 +71,11 @@ const Index = () => {
               <Users className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Attendance
+              Attendance Tracker
             </h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            AI Powered Smart Attendance system
+            AI-powered attendance verification system
           </p>
           
           {/* Reset Button */}
@@ -156,21 +122,17 @@ const Index = () => {
             <TabsList className="grid w-full grid-cols-4 bg-gray-100/50">
               <TabsTrigger value="capture" className="flex items-center gap-2">
                 <Camera className="h-4 w-4" />
-                <span className="hidden sm:inline">Capture</span>
+                <span className="hidden sm:inline">Hall Photo</span>
               </TabsTrigger>
               <TabsTrigger value="signature" className="flex items-center gap-2">
                 <FileSignature className="h-4 w-4" />
-                <span className="hidden sm:inline">Signature</span>
+                <span className="hidden sm:inline">Sign Sheet</span>
               </TabsTrigger>
               <TabsTrigger value="comparison" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Compare</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="history" 
-                className="flex items-center gap-2"
-                disabled={!isLoggedIn}
-              >
+              <TabsTrigger value="history" className="flex items-center gap-2">
                 <History className="h-4 w-4" />
                 <span className="hidden sm:inline">History</span>
               </TabsTrigger>
@@ -207,37 +169,22 @@ const Index = () => {
               <AttendanceComparison 
                 result={currentResult} 
                 onStoreRecord={handleStoreRecord}
-                isLoggedIn={isLoggedIn}
                 sessionName={sessionName}
                 onSessionNameChange={setSessionName}
               />
             </TabsContent>
 
             <TabsContent value="history" className="mt-6">
-              {isLoggedIn ? (
-                <SessionHistory 
-                  results={countResults} 
-                  onSelectResult={(result) => {
-                    setCurrentResult(result);
-                    setActiveTab("comparison");
-                  }}
-                />
-              ) : (
-                <div className="text-center py-12">
-                  <History className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">Login Required</h3>
-                  <p className="text-gray-500 mb-4">Please login to access attendance history</p>
-                  <Button onClick={() => setShowLogin(true)}>Login</Button>
-                </div>
-              )}
+              <SessionHistory 
+                results={countResults} 
+                onSelectResult={(result) => {
+                  setCurrentResult(result);
+                  setActiveTab("comparison");
+                }}
+              />
             </TabsContent>
           </Tabs>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
-          <p>Powered by YOLO Computer Vision • Built with React & Python</p>
-        </div>
       </div>
     </div>
   );

@@ -1,21 +1,21 @@
 
-import { CheckCircle, XCircle, Users, FileSignature, Shield } from "lucide-react";
+import { CheckCircle, XCircle, Users, FileSignature, Save } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { CountResult } from "../pages/Index";
+import { toast } from "sonner";
 
 interface AttendanceComparisonProps {
   result: CountResult | null;
   onStoreRecord: () => void;
-  isLoggedIn: boolean;
   sessionName: string;
   onSessionNameChange: (name: string) => void;
 }
 
-const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, onSessionNameChange }: AttendanceComparisonProps) => {
+const AttendanceComparison = ({ result, onStoreRecord, sessionName, onSessionNameChange }: AttendanceComparisonProps) => {
   if (!result || result.signatureCount === undefined) {
     return (
       <div className="text-center py-12">
@@ -30,7 +30,6 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
   const difference = Math.abs(result.headCount - result.signatureCount!);
   const accuracy = isMatched ? 100 : Math.max(0, 100 - (difference / Math.max(result.headCount, result.signatureCount!) * 100));
 
-  // Color coding based on accuracy
   const getAccuracyColor = (acc: number) => {
     if (acc >= 95) return "text-green-600";
     if (acc >= 80) return "text-yellow-600";
@@ -41,6 +40,11 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
     if (acc >= 95) return "bg-green-50 border-green-200";
     if (acc >= 80) return "bg-yellow-50 border-yellow-200";
     return "bg-red-50 border-red-200";
+  };
+
+  const handleStoreRecord = () => {
+    onStoreRecord();
+    toast.success("Record stored successfully!");
   };
 
   return (
@@ -103,24 +107,24 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
             {isMatched ? (
               <div className="space-y-2">
                 <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
-                <h3 className="text-lg font-semibold text-green-800">Attendance Verified</h3>
+                <h3 className="text-lg font-semibold text-green-800">Attendance Verified ✓</h3>
                 <p className="text-green-700">
-                  Head count and signatures match! No fake signatures detected.
+                  Head count and signatures match! No discrepancies detected.
                 </p>
                 <Badge className="bg-green-600 text-white">
-                  ✓ Verified
+                  ✓ Matched
                 </Badge>
               </div>
             ) : (
               <div className="space-y-2">
                 <XCircle className="h-12 w-12 text-red-600 mx-auto" />
-                <h3 className="text-lg font-semibold text-red-800">Attendance Mismatch</h3>
+                <h3 className="text-lg font-semibold text-red-800">Attendance Mismatch ⚠</h3>
                 <p className="text-red-700">
                   <span className="font-bold text-xl">{difference}</span> {difference === 1 ? 'person' : 'people'} difference detected. 
                   Please verify attendance manually.
                 </p>
                 <Badge className="bg-red-600 text-white">
-                  ⚠ {difference} Mismatch{difference !== 1 ? 'es' : ''}
+                  ⚠ {difference} Difference{difference !== 1 ? 's' : ''}
                 </Badge>
               </div>
             )}
@@ -130,12 +134,12 @@ const AttendanceComparison = ({ result, onStoreRecord, isLoggedIn, sessionName, 
         {/* Store Record Button */}
         <div className="text-center">
           <Button
-            onClick={onStoreRecord}
+            onClick={handleStoreRecord}
             className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             size="lg"
           >
-            <Shield className="h-4 w-4 mr-2" />
-            {isLoggedIn ? 'Store Record' : 'Store Record (Login Required)'}
+            <Save className="h-4 w-4 mr-2" />
+            Store Record
           </Button>
         </div>
 
